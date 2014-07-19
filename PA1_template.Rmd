@@ -3,18 +3,75 @@
 
 ## Loading and preprocessing the data
 
+Load the dataset and convert the date string to a date object.
+
+```{r echo=TRUE}
+act <- read.csv("activity.csv")
+act$date <- as.Date(act$date, format = "%Y-%m-%d")
+str(act)
+```
 
 
 ## What is mean total number of steps taken per day?
 
+Histogram of the number of steps taken each day:
+```{r echo=TRUE}
+hist(act$steps)
+```
 
+Mean and Median total number of steps taken per day:
+```{r echo=TRUE}
+meanSteps <- mean(act$steps[ ! is.na(act$steps)])
+medianSteps <- median(act$steps[ ! is.na(act$steps)])
+```
+- Mean = `r meanSteps` 
+- Median = `r medianSteps`
 
 ## What is the average daily activity pattern?
 
-
+```{r echo=TRUE}
+library(plyr)
+meanInterval <- ddply(act[! is.na(act$steps),] ,~interval ,summarise,mean=mean(steps))
+plot(meanInterval, type="l")
+maxMeanInterval <- meanInterval[ max(meanInterval$mean), ]
+```
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps? `r maxMeanInterval`
 
 ## Imputing missing values
 
+```{r echo=TRUE}
+naRows <- is.na(act$steps)
+naRowsCount <- sum(naRows)
+```
 
+Total number of missing values in the data set: `r naRowsCount`
+
+```{r echo=TRUE}
+filledAct <- act
+filledAct$steps[naRows] <- mean(filledAct$steps, na.rm = TRUE)
+hist(filledAct$steps)
+```
+
+Comparison of mean and median between original data and filled in data
+```{r echo=TRUE}
+filledMean <- mean(filledAct$steps)
+filledMedian <- median(filledAct$steps)
+```
+
+- Original Mean: `r meanSteps`
+- Filled Mean: `r filledMean`
+
+- Original Median: `r medianSteps`
+- Filled Median: `r filledMedian`
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r echo=TRUE}
+library(ggplot2)
+filledAct$weekend <- ifelse(weekdays(filledAct$date) %in% c("Saturdy","Sunday"), "Weekend", "Weekday")
+groupedIntervals <- ddply( filledAct, weekend ~ interval, summarise, mean=mean(steps))
+qplot(x=interval, y=mean, data=groupedIntervals, facets=weekend~., geom="line", ylab="Number of steps", xlab="Interval")
+```
+
+
+
