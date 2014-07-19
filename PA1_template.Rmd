@@ -45,6 +45,7 @@ naRowsCount <- sum(naRows)
 ```
 
 Total number of missing values in the data set: `r naRowsCount`
+Fill in missing data by simply inserting the average number of steps.
 
 ```{r echo=TRUE}
 filledAct <- act
